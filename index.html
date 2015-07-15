@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello React</title>
+    <script src="https://fb.me/react-0.13.3.js"></script>
+    <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <style>
+      body{
+        font-family: Arial
+      }
+      p.msg {
+        border:1px;
+        border-radius: 20px;
+        /*border-style: solid;*/
+        /*border-color:black;*/
+        padding:5px;
+        /*width:280px;*/
+        /*background: #eee;*/
+        background: #B3ED7A;
+        background-size: contain;
+        float: left;
+        clear: both;
+      }
+      p.me {
+        border:1px;
+        border-radius: 20px;
+        padding:5px;
+        /*width:280px;*/
+        background-size: contain;
+        background: #eee;
+        float: right;
+        clear: both;
+      }
+      p.hilight{
+        background-color:yellow;
+        padding:3px;
+        text-align:center;
+        clear: both;
+      }
+
+      p.hilight2{
+        background-color:lime;
+        padding:3px;
+        text-align:center;
+        clear: both;
+      }
+
+      p.hilight3{
+        background-color:tomato;
+        padding:3px;
+        text-align:center;
+        clear: both;
+      }
+
+      #newusr,
+      #recv,
+      #chatfield,
+      #onlinelist{
+          display:inline;
+          position:relative;
+          float:left;
+      }
+      #newusr,
+      #chatfield {
+          width:100%;
+          height:60px;
+          padding:5px;
+        }
+
+      #newusr{
+        background-color:black;
+        color:white;
+        margin-bottom:1%;
+      }
+      #chatfield{
+        /*background-color:#eeeeee;*/
+        background-color:orange;
+        margin-top:1%;
+      }
+      #recv{
+        /*background-color:powderblue;*/
+        background: #f5f5f5;
+        overflow-y: scroll;
+        width:70%;
+        height:500px;
+      }
+      #onlinelist{
+        /*background-color:orange;*/  
+        background-color:powderblue;
+        overflow-y: scroll;
+        width:30%;
+        height:500px;
+      }
+      #container{
+        max-width: 75em;
+        margin: 0 auto;
+      }
+      #yourname{
+
+      }
+    </style>
+  </head>
+  <body >
+    <div id= "container">
+
+      <form onsubmit="sendName();return false">
+        <div id="newusr">
+          login(or change your name): 
+          <input type="text" placeholder="username">
+          <input type="button" onclick="sendName()" value="Login" />
+          <p ><font size="2" color="lightpink" id="yourname">Now your name is ''</font></p>
+
+        </div>
+      </form>
+
+
+      <!--<div id="chatfield">name: <input type="text"> msg: <input type="text"></div>-->
+      <div id="recv">
+        <h4><center>Chat room: messages</center></h4><hr>
+      </div>
+
+      <div id="onlinelist">
+        <h4><center>Status: online</center></h4><hr>
+        <!--<ul type="circle" id="roomlist">
+          <li id="Default" onclick="testRoom(this);"><a href="#">Default</a></li>
+          <li id="Room1" onclick="testRoom(this);"><a href="#">Room1</a></li>
+          <li id="Room2" onclick="testRoom(this);"><a href="#">Room2</a></li>
+          <li id="Room3" onclick="testRoom(this);"><a href="#">Room3</a></li>
+          <li id="Room4" onclick="testRoom(this);"><a href="#">Room4</a></li>
+        </ul>-->     
+        <ul id="userlist">
+          <!--<li><input type="button" value="test" /></li>-->
+          <!--li-->
+        </ul>
+      </div>
+
+      <form onsubmit="sendMsg();return false">
+        <div id="chatfield">
+          msg: 
+          <input type="text" size="45" autofocus="autofocus" placeholder="input text here">
+          <input type="button" onclick="sendMsg()" value="Submit" />
+          <p ><font size="2" color="DarkSlateBlue" id="frdname">Now friend name is ''</font></p>
+        </div>
+      </form>
+      <!--<hr width="400" align="left">-->
+    </div> <!--container-->
+    <script>
+      // var url = "192.168.2.15:3000"
+      var url = "192.168.179.107:3000";
+      var socket = io.connect(url);
+      var myname ="";
+      var friendname ="";
+
+      // socket.on("connect",function(){
+      //     socket.emit("adduser",prompt("Enter your name: "));
+      // });
+
+
+      // socket.on("noti_me_new_con",function(noti,username){
+      //   //  set header
+
+      //   // myname=data.name;
+      //   // var elem = document.getElementById("yourname");
+      //   // elem.innerHTML="Now your name is '"+username+"'";
+
+      //   // alert("test");
+      //   //  noti me 
+      //   var para = document.createElement("P");
+      //   para.className='hilight';
+      //   var newText = document.createTextNode(noti);
+      //   para.appendChild(newText);
+      //   document.getElementById("recv").appendChild(para);
+
+      //   //  update scrolltop
+      //   var elem_recv = document.getElementById("recv");
+      //   elem_recv.scrollTop = elem_recv.scrollHeight;
+      // });
+
+      // socket.on("noti_frd_new_con",function(noti){
+      //   //  noti friends
+      //   var para = document.createElement("P");
+      //   para.className='hilight2';
+      //   var newText = document.createTextNode(noti);
+      //   para.appendChild(newText);
+      //   document.getElementById("recv").appendChild(para);
+
+      //   //  update scrolltop
+      //   var elem_recv = document.getElementById("recv");
+      //   elem_recv.scrollTop = elem_recv.scrollHeight;
+      // });
+      socket.on("get_history",function(x){
+        if(x[1]!=myname){
+          return;
+        }
+        else{
+          var i;
+          // for(i=0;i<x.length;i=i+2){
+            for(i=x.length-1;i>1;i=i-2){
+              if(x[i-1]==myname){
+                var para = document.createElement("P");
+                para.className='me';
+                var newText = document.createTextNode(x[i]);
+                para.appendChild(newText);
+                document.getElementById("recv").appendChild(para);
+              }
+              else{ // friendname
+                var para = document.createElement("P");
+                para.className='msg';
+                var newText = document.createTextNode(x[i-1]+": "+x[i]);
+                para.appendChild(newText);
+                document.getElementById("recv").appendChild(para);
+              }
+          }
+          //  update scrolltop
+          var elem_recv = document.getElementById("recv");
+          elem_recv.scrollTop = elem_recv.scrollHeight;
+
+          // for(var key in x){
+          //   if(key!=0 && key!=1){
+          //     if(key%2==0){ //name
+
+          //     }
+          //   }
+          // }
+        }
+      });
+
+
+      socket.on("fetchmsg",function(forme,fromuser,msg){
+        if(forme==myname){
+        var para = document.createElement("P");
+        para.className='msg';
+        var newText = document.createTextNode(fromuser+": "+msg);
+        para.appendChild(newText);
+        document.getElementById("recv").appendChild(para);
+
+        //  update scrolltop
+        var elem_recv = document.getElementById("recv");
+        elem_recv.scrollTop = elem_recv.scrollHeight;
+      }
+      // else{
+      //   alert(myname+" not me.")
+      // }
+      });
+
+      socket.on("updateusers",function(data){
+        // alert(myname);
+        var myNode = document.getElementById("userlist");
+        while (myNode.firstChild){
+          myNode.removeChild(myNode.firstChild);
+        }
+
+        for(var key in data){
+          if(key!=0){
+          var elem = document.getElementById(data[key]);
+          //  not exist(add to userlist)
+          // alert(elem);
+          // if(elem == null) {
+            var para2 = document.createElement("LI");
+            para2.setAttribute("id",data[key]);
+            // para2.setAttribute("onclick",setFriendName(data[key]));
+            var bt = document.createElement("input");
+            bt.type="button";
+            bt.value = data[key];
+            var frd = data[key];
+            // bt.addEventListener("click",function(){
+            //   friendname=bt.value;
+            //   alert(friendname);
+            // });
+            bt.onclick = setFriendName(data[key]);
+            //   friendname=bt.value;
+            //   // return false;
+            //   alert(friendname);
+            //   return false;
+            // };
+            // var newText2 = document.createTextNode(data[key]);
+            // para2.appendChild(newText2);
+            para2.appendChild(bt);
+            document.getElementById("userlist").appendChild(para2);
+            // alert("123");
+            //             para2.onclick = function(data[key]){
+            //   friendname=friendName;
+            //   alert(friendname);
+            //   return false;
+            // };
+
+
+          // }
+        }
+        }
+
+        //  update scrolltop
+        var elem_online = document.getElementById("onlinelist");
+        elem_online.scrollTop = elem_online.scrollHeight;
+      });
+
+      var setFriendName = function(friendName){
+        return function() {
+          friendname=friendName;
+          var elem = document.getElementById("frdname");
+          elem.innerHTML="Now friend name is '"+friendname+"'.";
+          socket.emit("update_private_frd",friendname);
+          alert(friendname);
+
+        };
+      }
+
+      // socket.on("updatechat",function(username,data){
+      //   //  show msg (friends)
+      //   var para = document.createElement("P");
+      //   para.className='msg';
+      //   var newText = document.createTextNode(username+": "+data);
+      //   para.appendChild(newText);
+      //   document.getElementById("recv").appendChild(para);
+
+      //   //  update scrolltop
+      //   var elem_recv = document.getElementById("recv");
+      //   elem_recv.scrollTop = elem_recv.scrollHeight;
+      // });
+
+      // socket.on("noti_frd_discon",function(noti){
+      //   //  noti friends
+      //   var para = document.createElement("P");
+      //   para.className='hilight3';
+      //   var newText = document.createTextNode(noti);
+      //   para.appendChild(newText);
+      //   document.getElementById("recv").appendChild(para);
+
+      //   //  update scrolltop
+      //   var elem_recv = document.getElementById("recv");
+      //   elem_recv.scrollTop = elem_recv.scrollHeight;
+      // });
+
+      // socket.on("updaterooms",function(oldroom,current_room){
+      //   // alert('updaterooms');
+      //   if(oldroom==current_room){
+      //     alert("You are in this room.");
+      //   }
+      //   else{
+      //     var myNode = document.getElementById("recv");
+      //     while (myNode.firstChild){
+      //       myNode.removeChild(myNode.firstChild);
+      //     }
+      //   }
+      // });
+
+      function testRoom(div){
+        // alert('test: '+div.id);
+        var newroom = div.id;
+        socket.emit('switchroom',newroom);
+      }
+
+      function sendMsg(){
+         if(friendname==""){
+          alert("Please select your friend.");
+          return;
+        }
+        if(myname==""){
+          alert("Please login before send a msg.");
+          return;
+        }
+        // if(document.getElementById(friendname)==NULL){
+        //   alert(friendname+"has left.");
+        //   friendname="";
+        //   return;
+        // }
+
+        var msg = document.getElementById("chatfield").children[0].value;
+
+        //  show msg (me) ----------------------------------
+        var para = document.createElement("P");
+        para.className='me';
+        var newText = document.createTextNode(msg);
+        para.appendChild(newText);
+        document.getElementById("recv").appendChild(para);
+
+        //  update scrolltop
+        var elem_recv = document.getElementById("recv");
+        elem_recv.scrollTop = elem_recv.scrollHeight;
+
+        //  clear textfield
+        document.getElementById("chatfield").children[0].value="";
+        // -------------------------------------------------
+
+        socket.emit('sendchat', myname, friendname, msg);
+      }
+
+      function sendName(){
+        // alert('test sendName');
+        var newname = document.getElementById("newusr").children[0].value;
+        //  notice (join)
+        var elem = document.getElementById(newname);
+        if(elem != null) {
+            alert("This name is used.\nPlease input new name.");
+          document.getElementById("newusr").children[0].value="";
+          return;
+        }
+
+        else { 
+          // socket.emit('change_name',{oldname: myname, newname: newname}); 
+          document.getElementById("newusr").children[0].disabled=true;
+          // document.getElementById("newusr").children[0].value="";
+          myname = newname;
+
+          var elem = document.getElementById("yourname");
+          elem.innerHTML="Now your name is '"+myname+"'.";
+
+          socket.emit("adduser",myname);
+        }
+      }
+
+    </script>
+  </body>
+</html>
