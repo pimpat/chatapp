@@ -41,7 +41,7 @@ int main (void)
 
     while (1) {
         char *str = s_recv(responder);
-        printf("str: %s\n",str);
+//        printf("str: %s\n",str);
         
         int numtype;
         char *token = strtok(str,"::");
@@ -49,11 +49,11 @@ int main (void)
         
         //  login
         if(numtype==1){
-            printf("----------------------\n");
+            printf("[#%d login]----------------------\n",numtype);
             token = strtok(NULL,"::");
             char *usrname = strdup(token);
             free(str);
-            printf("new_con_user: %s\n",usrname);
+            printf("username(login): %s\n",usrname);
 
             //  Login User
             TPUserID userID;
@@ -64,17 +64,22 @@ int main (void)
             if (ret != 0) {
                 fprintf(stderr, "Client loginUser return (%d)\n", ret);
             }
-            s_send(responder,"1:login success");
+            char rep_str[100]="1:login success";
+            strcat(rep_str,":");
+            strcat(rep_str,usrname);
+            s_send(responder,rep_str);
+//            s_send(responder,"1:login success");
+            printf("\n\n");
         }
         //  logout
         if(numtype==0){
-            printf("----------------------\n");
+            printf("[#%d logout]----------------------\n",numtype);
             token = strtok(NULL,"::");
             char *usrname = strdup(token);
             free(str);
             
             //  Logout User
-            printf("dis_con_user: %s\n",usrname);
+            printf("username(logout): %s\n",usrname);
             TPUserID userID;
 //            memcpy(userID,usrname,strlen(usrname)+1);
             memset(&userID,0,sizeof(userID));
@@ -83,11 +88,16 @@ int main (void)
             if (ret != 0) {
                 fprintf(stderr, "Client logoutUser return (%d)\n", ret);
             }
-            s_send(responder,"0:disconnect success");
+            char rep_str[100]="0:logout success";
+            strcat(rep_str,":");
+            strcat(rep_str,usrname);
+            s_send(responder,rep_str);
+//            s_send(responder,"0:disconnect success");
+            printf("\n\n");
         }
         //  send msg
         if(numtype==2){
-            printf("----------------------\n");
+            printf("[#%d sendMsg]----------------------\n",numtype);
             char msg[256];
             
             token = strtok(NULL,"::");
@@ -112,22 +122,28 @@ int main (void)
             
             message.msg = msg;
             message.bytesCount = (int)strlen(msg);
-            printf("msg: %s\tbytes: %d\n",message.msg,message.bytesCount);
+            printf("msg: %s\nbytes: %d\n",message.msg,message.bytesCount);
             message.msgType = TP_MSG_TYPE_CHAT;
             ret = TPSendToUser(context, &sender, &target, &message);
             if (ret != 0) {
                 fprintf(stderr, "Client sendToUser return (%d)\n", ret);
             }
-            s_send(responder,"2:received msg");
+            char rep_str[100]="2:send msg success";
+            strcat(rep_str,":");
+            strcat(rep_str,mySender);
+            s_send(responder,rep_str);
+//            s_send(responder,"2:received msg");
+            printf("\n\n");
         }
         //  read msg
         if(numtype==3){
-            printf("----------------------\n");
+            printf("[#%d readMsg]----------------------\n",numtype);
             token = strtok(NULL,"::");
             char *myUserID = strdup(token);
             free(str);
+            
             char myMsg[400]="3";
-            printf("myUserID: %s\n",myUserID);
+            printf("username(req): %s\n",myUserID);
             
             TPUserID userID;
             TPTransportMsg *message;
@@ -142,26 +158,36 @@ int main (void)
             }
             if (message != NULL) {
                 message->msg[message->bytesCount] = '\0';
-                printf("%s: %s\n", message->from, message->msg);
+//                printf("%s: %s\n", message->from, message->msg);
+//                printf("'%s'->'%s': '%s' @%lu\n", message->from, message->to, message->msg, message->timestamp);
                 strcat(myMsg,":");
                 strcat(myMsg,myUserID);
                 strcat(myMsg,":");
                 strcat(myMsg,message->from);
                 strcat(myMsg,":");
                 strcat(myMsg,message->msg);
+                strcat(myMsg,":");
+                char tstamp[20]="";
+                sprintf(tstamp,"%lu",message->timestamp);
+//                printf("time: @%lu\n",message->timestamp);
+                strcat(myMsg,tstamp);
                 TPMsgFree(message);
-                printf("myMsg: %s\n",myMsg);
+                printf("send this str: %s\n",myMsg);
                 s_send(responder,myMsg);
             } else {
                 printf("not found message\n");
-                s_send(responder,"3:none");
+                strcat(myMsg,":");
+                strcat(myMsg,myUserID);
+                strcat(myMsg,":none");
+                s_send(responder,myMsg);
+//                s_send(responder,"3:none");
             }
-            
+            printf("\n\n");
         }
         //  list online users
         if(numtype==4){
+            printf("[#%d listOnlineUser]----------------------\n",numtype);
             free(str);
-            printf("----------------------\n");
             TPArrayUser *arrayUser = NULL;
             char userList[200] ="4";
             ret = TPListAllUser(context, &arrayUser);
@@ -174,23 +200,24 @@ int main (void)
                         strcat(userList,arrayUser->users[i].userID);
                     }
                 }
-                printf("userList: %s\n",userList);
+                printf("send this str: %s\n",userList);
                 s_send(responder,userList);
             }
             else {
                 fprintf(stderr, "Client listAllUser return (%d)\n", ret);
             }
             TPArrayUserFree(arrayUser);
+            printf("\n\n");
         }
+        //  list chat history
         if(numtype==5){
+            printf("[#%d listChatHistory]----------------------\n",numtype);
             char refID[16];
             char senderID[16];
             time_t timestamp = time(0);
             int limit = 10;
             
             char chatHist[1000] ="5";
-            
-            printf("----------------------\n");
             
             token = strtok(NULL,"::");
             char *myRefID = strdup(token);
@@ -204,7 +231,6 @@ int main (void)
             strcat(chatHist,myRefID);
 //            strcat(chatHist,":");
 //            strcat(chatHist,mySenderID);
-            
             
             TPTransportMsg **arrayMsg;
             memset(refID, 0, sizeof(refID));
@@ -222,18 +248,24 @@ int main (void)
             if (ret != -1) {
                 int i;
                 for (i=0; i<ret; i++) {
-                    printf("%s: '%s' @%lu\n", arrayMsg[i]->from, arrayMsg[i]->msg, arrayMsg[i]->timestamp);
+//                    printf("%s: '%s' @%lu\n", arrayMsg[i]->from, arrayMsg[i]->msg, arrayMsg[i]->timestamp);
                     free(arrayMsg[i]);
                     strcat(chatHist,":");
                     strcat(chatHist,arrayMsg[i]->from);
                     strcat(chatHist,":");
                     strcat(chatHist,arrayMsg[i]->msg);
+                    strcat(chatHist,":");
+                    char tstamp[20]="";
+                    sprintf(tstamp,"%lu",arrayMsg[i]->timestamp);
+                    strcat(chatHist,tstamp);
                 }
             }
             else {
                 fprintf(stderr, "Client getChatFromDb return (%d)\n", ret);
             }
+            printf("send this str: %s\n",chatHist);
             s_send(responder,chatHist);
+            printf("\n\n");
         }
     }
     return 0;

@@ -149,6 +149,7 @@
     <script>
       // var url = "192.168.2.15:3000"
       var url = "192.168.179.107:3000";
+      // var url ="10.10.9.183:3000";
       var socket = io.connect(url);
       var myname ="";
       var friendname ="";
@@ -197,18 +198,20 @@
         else{
           var i;
           // for(i=0;i<x.length;i=i+2){
-            for(i=x.length-1;i>1;i=i-2){
-              if(x[i-1]==myname){
+            for(i=x.length-1;i>1;i=i-3){
+              if(x[i-2]==myname){
                 var para = document.createElement("P");
+                para.setAttribute("id",x[i]);
                 para.className='me';
-                var newText = document.createTextNode(x[i]);
+                var newText = document.createTextNode(x[i-1]);
                 para.appendChild(newText);
                 document.getElementById("recv").appendChild(para);
               }
               else{ // friendname
                 var para = document.createElement("P");
+                para.setAttribute("id",x[i]);
                 para.className='msg';
-                var newText = document.createTextNode(x[i-1]+": "+x[i]);
+                var newText = document.createTextNode(x[i-2]+": "+x[i-1]);
                 para.appendChild(newText);
                 document.getElementById("recv").appendChild(para);
               }
@@ -216,30 +219,53 @@
           //  update scrolltop
           var elem_recv = document.getElementById("recv");
           elem_recv.scrollTop = elem_recv.scrollHeight;
-
-          // for(var key in x){
-          //   if(key!=0 && key!=1){
-          //     if(key%2==0){ //name
-
-          //     }
-          //   }
-          // }
         }
       });
 
 
-      socket.on("fetchmsg",function(forme,fromuser,msg){
-        if(forme==myname){
-        var para = document.createElement("P");
-        para.className='msg';
-        var newText = document.createTextNode(fromuser+": "+msg);
-        para.appendChild(newText);
-        document.getElementById("recv").appendChild(para);
+      socket.on("fetchmsg",function(forme,fromuser,msg,tstamp){
+        if(forme==myname && fromuser==friendname){
+        // if(forme==myname){
+          // alert(tstamp);
+          //  check ว่ามี id ที่ตรงกันมั๊ย ถ้าตรงไม่แสดง
+          var elem_exist = 0;
+          var res = 0;    // ไม่แสดง
+          var str_time="";
+          var elem = document.getElementsByClassName('msg');
+          alert(elem[elem.length-1].id);
+          if(tstamp != elem[elem.length-1].id){
+            // ไม่เหมือน ก็แสดง
+            alert("not same");
+            res = 1; // แสดง
+          }
+          // for (var i=0;i<elem.length;i++){
+          //   // alert(elem[i].id);
+          //   str_time = str_time+":"+elem[i].id;
+          //   if(elem[i].id==tstamp)
+          //     elem_exist=1;
+          // }
 
-        //  update scrolltop
-        var elem_recv = document.getElementById("recv");
-        elem_recv.scrollTop = elem_recv.scrollHeight;
-      }
+          // alert("exist:"+elem_exist+"\n"+str_time);
+
+          // alert(elem.id);
+
+          // if(elem==NULL){
+            if(res==1){
+            var para = document.createElement("P");
+            para.className='msg';
+            var newText = document.createTextNode(fromuser+": "+msg);
+            para.appendChild(newText);
+            document.getElementById("recv").appendChild(para);
+
+            //  update scrolltop
+            var elem_recv = document.getElementById("recv");
+            elem_recv.scrollTop = elem_recv.scrollHeight;
+          }
+        }
+        else{
+          // alert("old msg");
+        //   alert(document.getElementById(tstamp)[0].innerHTML);
+        }
       // else{
       //   alert(myname+" not me.")
       // }
@@ -280,7 +306,7 @@
             para2.appendChild(bt);
             document.getElementById("userlist").appendChild(para2);
             // alert("123");
-            //             para2.onclick = function(data[key]){
+            //   para2.onclick = function(data[key]){
             //   friendname=friendName;
             //   alert(friendname);
             //   return false;
@@ -304,6 +330,14 @@
           socket.emit("update_private_frd",friendname);
           alert(friendname);
 
+          var cMsg = document.getElementsByClassName("msg");
+          var cMe = document.getElementsByClassName("me");
+          while(cMsg[0]){
+            cMsg[0].parentNode.removeChild(cMsg[0]);
+          }
+          while(cMe[0]){
+            cMe[0].parentNode.removeChild(cMe[0]);
+          }
         };
       }
 
