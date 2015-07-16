@@ -110,6 +110,7 @@
           login(or change your name): 
           <input type="text" placeholder="username">
           <input type="button" onclick="sendName()" value="Login" />
+          <input type="button" value="Create group chat" />
           <p ><font size="2" color="lightpink" id="yourname">Now your name is ''</font></p>
 
         </div>
@@ -133,6 +134,10 @@
         <ul id="userlist">
           <!--<li><input type="button" value="test" /></li>-->
           <!--li-->
+        </ul>
+        <hr>
+        <h4><center>Group: available</center></h4><hr>
+        <ul id="grouplist">
         </ul>
       </div>
 
@@ -405,6 +410,12 @@
         // alert('test sendName');
         var newname = document.getElementById("newusr").children[0].value;
         //  notice (join)
+
+        if(newname==""){
+          alert("Please input yourname.");
+          return;
+        }
+        
         var elem = document.getElementById(newname);
         if(elem != null) {
             alert("This name is used.\nPlease input new name.");
