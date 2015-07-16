@@ -225,32 +225,19 @@
 
       socket.on("fetchmsg",function(forme,fromuser,msg,tstamp){
         if(forme==myname && fromuser==friendname){
-        // if(forme==myname){
-          // alert(tstamp);
-          //  check ว่ามี id ที่ตรงกันมั๊ย ถ้าตรงไม่แสดง
-          var elem_exist = 0;
-          var res = 0;    // ไม่แสดง
-          var str_time="";
+          //  if res = 0 
+          //  don't show a msg
+          var res = 0;
           var elem = document.getElementsByClassName('msg');
-          alert(elem[elem.length-1].id);
+          // alert(elem[elem.length-1].id);
           if(tstamp != elem[elem.length-1].id){
-            // ไม่เหมือน ก็แสดง
-            alert("not same");
-            res = 1; // แสดง
+            // alert("msg is not same.");
+            //  res = 1
+            //  show a msg
+            res = 1;
           }
-          // for (var i=0;i<elem.length;i++){
-          //   // alert(elem[i].id);
-          //   str_time = str_time+":"+elem[i].id;
-          //   if(elem[i].id==tstamp)
-          //     elem_exist=1;
-          // }
 
-          // alert("exist:"+elem_exist+"\n"+str_time);
-
-          // alert(elem.id);
-
-          // if(elem==NULL){
-            if(res==1){
+          if(res==1){
             var para = document.createElement("P");
             para.className='msg';
             var newText = document.createTextNode(fromuser+": "+msg);
@@ -262,13 +249,6 @@
             elem_recv.scrollTop = elem_recv.scrollHeight;
           }
         }
-        else{
-          // alert("old msg");
-        //   alert(document.getElementById(tstamp)[0].innerHTML);
-        }
-      // else{
-      //   alert(myname+" not me.")
-      // }
       });
 
       socket.on("updateusers",function(data){

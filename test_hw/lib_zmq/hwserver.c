@@ -59,7 +59,7 @@ int main (void)
             TPUserID userID;
 //            memcpy(userID,usrname,strlen(usrname)+1);
             memset(&userID,0,sizeof(userID));
-            strcpy(userID,usrname);
+            strcpy((char*)userID,usrname);
             ret = TPLoginUser(context, &userID);
             if (ret != 0) {
                 fprintf(stderr, "Client loginUser return (%d)\n", ret);
@@ -83,7 +83,7 @@ int main (void)
             TPUserID userID;
 //            memcpy(userID,usrname,strlen(usrname)+1);
             memset(&userID,0,sizeof(userID));
-            strcpy(userID,usrname);
+            strcpy((char*)userID,usrname);
             ret = TPLogoutUser(context, &userID);
             if (ret != 0) {
                 fprintf(stderr, "Client logoutUser return (%d)\n", ret);
@@ -115,10 +115,10 @@ int main (void)
             TPUserID target;
 //            memcpy(sender,mySender,strlen(mySender)+1);
             memset(&sender,0,sizeof(sender));
-            strcpy(sender,mySender);
+            strcpy((char*)sender,mySender);
 //            memcpy(target,myTarget,strlen(myTarget)+1);
             memset(&target,0,sizeof(target));
-            strcpy(target,myTarget);
+            strcpy((char*)target,myTarget);
             
             message.msg = msg;
             message.bytesCount = (int)strlen(msg);
@@ -149,7 +149,7 @@ int main (void)
             TPTransportMsg *message;
 //            memcpy(userID,myUserID,strlen(myUserID)+1);
             memset(&userID,0,sizeof(userID));
-            strcpy(userID,myUserID);
+            strcpy((char*)userID,myUserID);
             if (strcmp((char *)&userID, "NULL") != 0) {
                 message = TPMsgGet(context, &userID, TP_MSG_TYPE_CHAT);
             }
@@ -197,7 +197,7 @@ int main (void)
 //                    printf("'%s': %s\n", arrayUser->users[i].userID, arrayUser->users[i].status==TP_STATUS_ONLINE? "online": "offline");
                     if(arrayUser->users[i].status==TP_STATUS_ONLINE){
                         strcat(userList,":");
-                        strcat(userList,arrayUser->users[i].userID);
+                        strcat(userList,(char*)arrayUser->users[i].userID);
                     }
                 }
                 printf("send this str: %s\n",userList);

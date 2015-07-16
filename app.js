@@ -11,7 +11,7 @@ var io = require('socket.io')(http);
 // var rRoom1 = {};
 // var rRoom2 = {}; 
 
-var private_room = {};
+// var private_room = {};
 var usernames={};
 
 //	define a route handler / that gets called when we hit our website home
@@ -93,11 +93,11 @@ io.on('connection', function(socket){
 
     setInterval(function(){
       // console.log("setinterval: 3");
-      // console.log("### Private Room: "+private_room+" ###");
-      console.log(private_room);
-      for(var key in private_room){
+      console.log(usernames);
+      for(var key in usernames){
         requester.send("3::"+key);
       }
+
     },5000);
 
   //-----------------------------------------------
@@ -106,7 +106,7 @@ io.on('connection', function(socket){
       console.log("[adduser]-----------------------");
       console.log(username);
 
-      private_room[socket.username]="";
+      // private_room[socket.username]="";
       socket.username = username;
       // socket.room ='Room1';
       // socket.join('Room1');
@@ -128,7 +128,7 @@ io.on('connection', function(socket){
       console.log("[update_private_frd]-----------------------");
       console.log(socket.username);
 
-      private_room[socket.username]=frdname;
+      // private_room[socket.username]=frdname;
       requester.send("5::"+socket.username+"::"+frdname);
     });
 
@@ -152,7 +152,7 @@ io.on('connection', function(socket){
       console.log("[disconnect]-----------------------");
       console.log(socket.username);
 
-      delete private_room[socket.username];
+      // delete private_room[socket.username];
       console.log('\''+socket.username+'\' disconnected.');
 
       // var address = socket.handshake.address;
