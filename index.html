@@ -110,7 +110,7 @@
           login(or change your name): 
           <input type="text" placeholder="username">
           <input type="button" onclick="sendName()" value="Login" />
-          <input type="button" value="Create group chat" />
+          <input type="button" onclick="createGroup()" value="Create group chat" />
           <p ><font size="2" color="lightpink" id="yourname">Now your name is ''</font></p>
 
         </div>
@@ -371,6 +371,10 @@
         socket.emit('switchroom',newroom);
       }
 
+      function createGroup(){
+        alert("group");
+      }
+
       function sendMsg(){
          if(friendname==""){
           alert("Please select your friend.");
@@ -415,7 +419,7 @@
           alert("Please input yourname.");
           return;
         }
-        
+
         var elem = document.getElementById(newname);
         if(elem != null) {
             alert("This name is used.\nPlease input new name.");
