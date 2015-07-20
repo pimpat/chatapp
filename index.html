@@ -138,7 +138,7 @@
           <input type="button" onclick="sendMsg()" value="Submit" />
           <p ><font size="2" color="DarkSlateBlue" id="frdname">Now friend name is ''</font></p>
         </div>
-        <div id="mygroup"></div>
+        <!-- <div id="mygroup"></div> -->
       </form>
 
     </div> <!--container-->
@@ -148,6 +148,8 @@
       var socket = io.connect(url);
       var myname ="";
       var friendname ="";
+      var mygroupname ={};
+      // var temp_selected_name="";
 
       socket.on("get_history",function(x){
         if(x[1]!=myname){
@@ -186,12 +188,19 @@
           //  don't show a msg
           var res = 0;
           var elem = document.getElementsByClassName('msg');
-          // alert(elem[elem.length-1].id);
-          if(tstamp != elem[elem.length-1].id){
-            // alert("msg is not same.");
-            //  res = 1
-            //  show a msg
+          console.log("len: "+elem[elem.length-1].id);
+          // bug (1)
+          if(elem == undefined){
+            alert("undefined");
             res = 1;
+          }
+          else{
+            if(tstamp != elem[elem.length-1].id){
+              // alert("msg is not same.");
+              //  res = 1
+              //  show a msg
+              res = 1;
+            }
           }
 
           if(res==1){
@@ -207,6 +216,55 @@
           }
         }
       });
+
+      socket.on("req_join_group",function(x){
+        if(x.indexOf(myname)==-1){
+          //  not found me
+          return;
+        }
+        //  for check when fetch msg from group
+        mygroupname[x[1]]=x[1];
+        // alert(mygroupname);
+        console.log("mygroupname: "+mygroupname[x[1]]);
+
+        var para2 = document.createElement("LI");
+        para2.setAttribute("id",x[1]);
+        var bt = document.createElement("input");
+        bt.type="button";
+        bt.value = x[1]
+
+        bt.onclick = setGroupName(x[1]);
+        para2.appendChild(bt);
+        document.getElementById("grouplist").appendChild(para2);    
+
+        //  update scrolltop
+        var elem_online = document.getElementById("onlinelist");
+        elem_online.scrollTop = elem_online.scrollHeight;    
+      });
+
+      var setGroupName = function(friendName){
+        return function() {
+          friendname=friendName;
+          var elem = document.getElementById("frdname");
+          elem.innerHTML="Now you are in group '"+friendname+"'.";
+          //  list chat history group *****
+          // socket.emit("update_private_group",friendname);
+          alert(friendname);
+
+          var cMsg = document.getElementsByClassName("msg");
+          var cMe = document.getElementsByClassName("me");
+          while(cMsg[0]){
+            cMsg[0].parentNode.removeChild(cMsg[0]);
+          }
+          while(cMe[0]){
+            cMe[0].parentNode.removeChild(cMe[0]);
+          }
+        };
+      }
+
+      // socket.on("updategroups",function(x){
+
+      // });
 
       socket.on("updateusers",function(data){
         var myNode = document.getElementById("userlist");
@@ -268,33 +326,67 @@
         };
       }
 
+      function _createGroup(newgroup,friendsname){
+        // alert(newgroup+"::"+friendsname);
+        // alert(temp_selected_name);
+        socket.emit('new_group',newgroup,myname+":"+friendsname);
+      }
+
       function createGroup(){
+        if(myname==""){
+          alert("Please login before create group.");
+          return;
+        }
         // alert("group");
         document.getElementById("btGroup").disabled = true;
         var myWindow = window.open("", "Selected users", "width=200, height=600");
+
+        myWindow.document.write("<p>New group: </p>");
+        var input = document.createElement("input");
+        input.id = "newgroup"
+        input.type = "text";
+        input.placeholder = "group name";
+        myWindow.document.body.appendChild(input);
+
         myWindow.document.write("<p>Select your friends: </p>");
         var myNode = document.getElementById("userlist");
         var items = myNode.getElementsByTagName("li");
 
         for(var i=0;i<items.length;i++){
-          var x = document.createElement("INPUT");
-          x.type="checkbox";
-          x.className="checkedlist";
-          x.id=items[i].id;
+          if(items[i].id!=myname){
+            var x = document.createElement("INPUT");
+            x.type="checkbox";
+            x.className="checkedlist";
+            x.id=items[i].id;
 
-          var label = document.createElement("label");
-          label.htmlFor=items[i].id;
-          label.innerHTML=items[i].id;
+            var label = document.createElement("label");
+            label.htmlFor=items[i].id;
+            label.innerHTML=items[i].id;
 
-          myWindow.document.body.appendChild(x);
-          myWindow.document.body.appendChild(label);
-          myWindow.document.write("<br></br>");
+            myWindow.document.body.appendChild(x);
+            myWindow.document.body.appendChild(label);
+            myWindow.document.write("<br></br>");
+          }
         }
 
         var bt = document.createElement("input");
         bt.type="button";
         bt.value="Submit";
         bt.onclick = function(){
+          var newgroup = myWindow.document.getElementById("newgroup").value;
+          if(newgroup.trim()=="" || newgroup.indexOf(' ')>-1){
+            alert("Please input group name.\n(group name should not include space.)");
+            return;
+          }
+
+          var elem = document.getElementById(newgroup);
+
+          if(elem != undefined) {
+            alert("This group name is used.\nPlease input new group name.");
+            myWindow.document.getElementById("newgroup")="";
+            return;
+          }
+
           var myChecked = myWindow.document.getElementsByClassName("checkedlist");
           var txt="";
 
@@ -302,18 +394,26 @@
               if(myChecked[i].checked)
                   txt=txt+myChecked[i].id+":";
           }
+          if(txt==""){
+            alert("Please select your friends.");
+            return;
+          }
 
-          var res = document.getElementById("mygroup");
-          res.value=txt;
+          // var res = document.getElementById("mygroup");
+          // res.value=txt;
           // alert(res.value);
+          // temp_selected_name=txt;
+          // alert(temp_selected_name);
 
           document.getElementById("btGroup").disabled = false;
+          myWindow.opener._createGroup(newgroup,txt);
           myWindow.close();
         }
         myWindow.document.body.appendChild(bt);
       }
 
       function sendMsg(){
+        // alert(temp_selected_name);
          if(friendname==""){
           alert("Please select your friend.");
           return;
@@ -339,14 +439,21 @@
         //  clear textfield
         document.getElementById("chatfield").children[0].value="";
         // -------------------------------------------------
-        socket.emit('sendchat', myname, friendname, msg);
+        // if(mygroupname[friendname]==undefined){
+          //  send private room
+          socket.emit('sendchat', myname, friendname, msg);
+        // }
+        // else{
+        //   //  send to group
+        //   socket.emit('send_to_group',myname,friendname,msg);
+        // }
       }
 
       function sendName(){
         var newname = document.getElementById("newusr").children[0].value;
 
-        if(newname==""){
-          alert("Please input yourname.");
+        if(newname.trim()=="" || newname.indexOf(' ')>-1){
+          alert("Please input your name.\n(your name should not include space.)");
           return;
         }
 
@@ -364,6 +471,8 @@
           var elem = document.getElementById("yourname");
           elem.innerHTML="Now your name is '"+myname+"'.";
           socket.emit("adduser",myname);
+
+          // socket.emit("updategroups",myname);
         }
       }
 

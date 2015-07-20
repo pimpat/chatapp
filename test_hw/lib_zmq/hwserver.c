@@ -44,13 +44,13 @@ int main (void)
 //        printf("str: %s\n",str);
         
         int numtype;
-        char *token = strtok(str,"::");
+        char *token = strtok(str,":");
         numtype = atoi(token);
         
         //  login
         if(numtype==1){
             printf("[#%d login]----------------------\n",numtype);
-            token = strtok(NULL,"::");
+            token = strtok(NULL,":");
             char *usrname = strdup(token);
             free(str);
             printf("username(login): %s\n",usrname);
@@ -74,7 +74,7 @@ int main (void)
         //  logout
         if(numtype==0){
             printf("[#%d logout]----------------------\n",numtype);
-            token = strtok(NULL,"::");
+            token = strtok(NULL,":");
             char *usrname = strdup(token);
             free(str);
             
@@ -100,13 +100,13 @@ int main (void)
             printf("[#%d sendMsg]----------------------\n",numtype);
             char msg[256];
             
-            token = strtok(NULL,"::");
+            token = strtok(NULL,":");
             char *mySender = strdup(token);
             
-            token = strtok(NULL,"::");
+            token = strtok(NULL,":");
             char *myTarget = strdup(token);
             
-            token = strtok(NULL,"::");
+            token = strtok(NULL,":");
             sprintf(msg,"%s",token);
             
             free(str);
@@ -138,7 +138,7 @@ int main (void)
         //  read msg
         if(numtype==3){
             printf("[#%d readMsg]----------------------\n",numtype);
-            token = strtok(NULL,"::");
+            token = strtok(NULL,":");
             char *myUserID = strdup(token);
             free(str);
             
@@ -219,10 +219,10 @@ int main (void)
             
             char chatHist[1000] ="5";
             
-            token = strtok(NULL,"::");
+            token = strtok(NULL,":");
             char *myRefID = strdup(token);
             
-            token = strtok(NULL,"::");
+            token = strtok(NULL,":");
             char *mySenderID = strdup(token);
             
             free(str);
@@ -266,6 +266,64 @@ int main (void)
             printf("send this str: %s\n",chatHist);
             s_send(responder,chatHist);
             printf("\n\n");
+        }
+        //  new and join group
+        if(numtype==6){
+            printf("[#%d new_joinGroup]----------------------\n",numtype);
+            
+            token = strtok(NULL,":");
+            char *myGroupRef = strdup(token);
+//            printf("token1: %s\n",myGroupRef);
+            
+            token = strtok(NULL,"\n");
+            char *myFriendsName = strdup(token);
+//            printf("token2: %s\n",myFriendsName);
+            
+            free(str);
+            
+            TPGroupID groupRef;
+            memset(&groupRef, 0, 16);
+            strcpy(groupRef,myGroupRef);
+            
+            ret = TPGroupNew(context, &groupRef);
+            if (ret != 0) {
+                fprintf(stderr, "Client newTPGroupID return (%d)\n", ret);
+            }
+            
+            printf("groupName: %s\n",myGroupRef);
+            char friendsGroupList[300]="6:";
+            strcat(friendsGroupList,myGroupRef);
+            strcat(friendsGroupList,":");
+            strcat(friendsGroupList,myFriendsName);
+            friendsGroupList[strlen(friendsGroupList)-1]='\0';
+            
+            char* token2 = strtok(myFriendsName,":");
+            TPUserID userID;
+            char *myUserID;
+            
+            while (token2!=NULL) {
+                memset(&userID, 0, sizeof(userID));
+                myUserID = strdup(token2);
+                strcpy(userID,myUserID);
+                printf("myUserID: %s\n",userID);
+                
+                ret = TPGroupJoin(context, &userID, &groupRef);
+                if (ret != 0) {
+                    fprintf(stderr, "Client joinGroup return (%d)\n", ret);
+                }
+                
+                free(myUserID);
+                token2 = strtok(NULL,":");
+            }
+            printf("send this str: %s\n",friendsGroupList);
+            s_send(responder,friendsGroupList);
+            printf("\n\n");
+        }
+        //  send to group
+        if(numtype==7){
+            printf("[#%d sendToGroup]----------------------\n",numtype);
+            free(str);
+            s_send(responder,"7:got it!!");
         }
     }
     return 0;
