@@ -135,6 +135,51 @@ int main (void)
 //            s_send(responder,"2:received msg");
             printf("\n\n");
         }
+        //  read invite msg
+        if(numtype==9){
+            printf("[#%d readInviteMsg]----------------------\n",numtype);
+            token = strtok(NULL,":");
+            char *myUserID = strdup(token);
+            free(str);
+            
+            char myInviteMsg[400]="9";
+            printf("username(req): %s\n",myUserID);
+            
+            TPUserID userID;
+            TPTransportMsg *message;
+            
+            memset(&userID,0,sizeof(userID));
+            strcpy((char*)userID,myUserID);
+            if (strcmp((char *)&userID, "NULL") != 0) {
+                message = TPMsgGet(context, &userID, TP_MSG_TYPE_CHATCONTROL);
+            }
+            else {
+                message = TPMsgGet(context, NULL, TP_MSG_TYPE_CHATCONTROL);
+            }
+            if (message != NULL) {
+                message->msg[message->bytesCount] = '\0';
+                strcat(myInviteMsg,":");
+                strcat(myInviteMsg,myUserID);
+                strcat(myInviteMsg,":");
+                strcat(myInviteMsg,message->from);
+                strcat(myInviteMsg,":");
+                strcat(myInviteMsg,message->msg);
+//                strcat(myMsg,":");
+//                char tstamp[20]="";
+//                sprintf(tstamp,"%lu",message->timestamp);
+//                strcat(myMsg,tstamp);
+                TPMsgFree(message);
+                printf("send this str: %s\n",myInviteMsg);
+                s_send(responder,myInviteMsg);
+            } else {
+                printf("not found invite message\n");
+                strcat(myInviteMsg,":");
+                strcat(myInviteMsg,myUserID);
+                strcat(myInviteMsg,":none");
+                s_send(responder,myInviteMsg);
+            }
+            printf("\n\n");
+        }
         //  read msg
         if(numtype==3){
             printf("[#%d readMsg]----------------------\n",numtype);
@@ -164,6 +209,8 @@ int main (void)
                 strcat(myMsg,myUserID);
                 strcat(myMsg,":");
                 strcat(myMsg,message->from);
+                strcat(myMsg,":");
+                strcat(myMsg,message->to);
                 strcat(myMsg,":");
                 strcat(myMsg,message->msg);
                 strcat(myMsg,":");
@@ -234,17 +281,17 @@ int main (void)
             
             TPTransportMsg **arrayMsg;
             memset(refID, 0, sizeof(refID));
-            strcpy(refID,myRefID);
+            strcpy((char*)refID,myRefID);
             
             memset(senderID, 0, sizeof(senderID));
-            strcpy(senderID,mySenderID);
+            strcpy((char*)senderID,mySenderID);
 
-            if (strcmp(senderID, "NULL") == 0) {
-                ret = TPMsgGetFromDB(context, (void *)refID, timestamp, limit, &arrayMsg);
-            }
-            else {
+//            if (strcmp(senderID, "NULL") == 0) {
+//                ret = TPMsgGetFromDB(context, (void *)refID, timestamp, limit, &arrayMsg);
+//            }
+//            else {
                 ret = TPMsgGetFromDBWithSender(context, refID, sizeof(refID), senderID, sizeof(senderID), timestamp, limit, &arrayMsg);
-            }
+//            }
             if (ret != -1) {
                 int i;
                 for (i=0; i<ret; i++) {
@@ -267,9 +314,9 @@ int main (void)
             s_send(responder,chatHist);
             printf("\n\n");
         }
-        //  new and join group
+        //  new group
         if(numtype==6){
-            printf("[#%d new_joinGroup]----------------------\n",numtype);
+            printf("[#%d newGroup]----------------------\n",numtype);
             
             token = strtok(NULL,":");
             char *myGroupRef = strdup(token);
@@ -283,7 +330,7 @@ int main (void)
             
             TPGroupID groupRef;
             memset(&groupRef, 0, 16);
-            strcpy(groupRef,myGroupRef);
+            strcpy((char*)groupRef,myGroupRef);
             
             ret = TPGroupNew(context, &groupRef);
             if (ret != 0) {
@@ -291,6 +338,7 @@ int main (void)
             }
             
             printf("groupName: %s\n",myGroupRef);
+            
             char friendsGroupList[300]="6:";
             strcat(friendsGroupList,myGroupRef);
             strcat(friendsGroupList,":");
@@ -301,29 +349,155 @@ int main (void)
             TPUserID userID;
             char *myUserID;
             
+            TPUserID sender;
+            TPUserID target;
+            
+            char *mySender = strdup(token2);
+            memset(&sender,0,sizeof(sender));
+            strcpy((char*)sender,mySender);
+            
+            char msg[256];
+            sprintf(msg,"%s",myGroupRef);
+            
             while (token2!=NULL) {
-                memset(&userID, 0, sizeof(userID));
-                myUserID = strdup(token2);
-                strcpy(userID,myUserID);
-                printf("myUserID: %s\n",userID);
+                char* myTarget = strdup(token2);
+                memset(&target,0,sizeof(target));
+                strcpy((char*)target,myTarget);
                 
-                ret = TPGroupJoin(context, &userID, &groupRef);
+                message.msg = msg;
+                message.bytesCount = (int)strlen(msg);
+//                printf("msg: %s\nbytes: %d\n",message.msg,message.bytesCount);
+                message.msgType = TP_MSG_TYPE_CHATCONTROL;
+                
+                printf("sender: %s\ntarget: %s\nmsg: %s\n",mySender,myTarget,msg);
+                
+                ret = TPSendToUser(context, &sender, &target, &message);
                 if (ret != 0) {
-                    fprintf(stderr, "Client joinGroup return (%d)\n", ret);
+                    fprintf(stderr, "Client sendToUser return (%d)\n", ret);
                 }
-                
-                free(myUserID);
                 token2 = strtok(NULL,":");
             }
             printf("send this str: %s\n",friendsGroupList);
             s_send(responder,friendsGroupList);
             printf("\n\n");
         }
-        //  send to group
+        //  join group
         if(numtype==7){
-            printf("[#%d sendToGroup]----------------------\n",numtype);
+            printf("[#%d joinGroup]----------------------\n",numtype);
+            
+            token = strtok(NULL,":");
+            char *myUserID = strdup(token);
+            
+            token = strtok(NULL,":");
+            char *myGroupRef = strdup(token);
+            
             free(str);
-            s_send(responder,"7:got it!!");
+            
+            TPUserID userID;
+            TPGroupID groupRef;
+
+            memset(&userID, 0, sizeof(userID));
+            strcpy((char*)userID,myUserID);
+            
+            memset(&groupRef, 0, sizeof(groupRef));
+            strcpy((char*)groupRef,myGroupRef);
+            
+            ret = TPGroupJoin(context, &userID, &groupRef);
+            if (ret != 0) {
+                fprintf(stderr, "Client joinGroup return (%d)\n", ret);
+            }
+            
+            char myMsg[400];
+            sprintf(myMsg,"7:'%s' join group '%s' (done)",myUserID,myGroupRef);
+            printf("send this str: %s\n",myMsg);
+//            s_send(responder,"7:join group (done)");
+            s_send(responder,myMsg);
+            printf("\n\n");
+        }
+        //  send msg to group
+        if(numtype==8){
+            printf("[#%d sendMsgToGroup]----------------------\n",numtype);
+            char msg[256];
+            TPTransportMsg message;
+            TPUserID sender;
+            TPGroupID groupRef;
+            
+            token = strtok(NULL,":");
+            char *mySender = strdup(token);
+            printf("token(sender): %s\n",token);
+            
+            token = strtok(NULL,":");
+            char *myGroupRef = strdup(token);
+            
+            token = strtok(NULL,":");
+            sprintf(msg,"%s",token);
+            
+            free(str);
+            
+            memset(&sender, 0, sizeof(sender));
+            strcpy((char*)sender,mySender);
+            memset(&groupRef, 0, sizeof(groupRef));
+            strcpy((char*)groupRef,myGroupRef);
+            message.msg = msg;
+            message.bytesCount = (int)strlen(msg);
+            
+            printf("msg: %s\nbytes: %d\n",message.msg,message.bytesCount);
+            message.msgType = TP_MSG_TYPE_CHAT;
+            ret = TPSendToGroup(context, &sender, &groupRef, &message);
+            if (ret != 0) {
+                fprintf(stderr, "Client sendToGroup return (%d)\n", ret);
+            }
+            char rep_str[100]="8:send msg to group success";
+            strcat(rep_str,":");
+            strcat(rep_str,mySender);
+            s_send(responder,rep_str);
+            printf("\n\n");
+        }
+        //  list chat group history
+        if(numtype==10){
+            printf("[#%d listChatGroupHistory]----------------------\n",numtype);
+            char refID[16];
+            time_t timestamp = time(0);
+            int limit = 10;
+            char chatHist[1000] ="10";
+            
+            token = strtok(NULL,":");
+            char* myName = strdup(token);
+            
+            token = strtok(NULL,":");
+            char *myRefID = strdup(token);
+            
+            free(str);
+            
+            strcat(chatHist,":");
+            strcat(chatHist,myName);
+            
+            TPTransportMsg **arrayMsg;
+            memset(refID, 0, sizeof(refID));
+            strcpy((char*)refID,myRefID);
+            
+            ret = TPMsgGetFromDBWithSender(context, refID, sizeof(refID), NULL, 0, timestamp, limit, &arrayMsg);
+            
+            if (ret != -1) {
+                int i;
+                for (i=0; i<ret; i++) {
+                    free(arrayMsg[i]);
+                    strcat(chatHist,":");
+                    strcat(chatHist,arrayMsg[i]->from);
+                    strcat(chatHist,":");
+                    strcat(chatHist,arrayMsg[i]->msg);
+                    strcat(chatHist,":");
+                    char tstamp[20]="";
+                    sprintf(tstamp,"%lu",arrayMsg[i]->timestamp);
+                    strcat(chatHist,tstamp);
+                }
+            }
+            else {
+                fprintf(stderr, "Client getChatFromDb return (%d)\n", ret);
+            }
+            printf("send this str: %s\n",chatHist);
+            s_send(responder,chatHist);
+            printf("\n\n");
         }
     }
     return 0;

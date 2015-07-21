@@ -143,7 +143,7 @@
 
     </div> <!--container-->
     <script>
-      var url = "192.168.2.15:3000"
+      var url = "192.168.2.10:3000"
       // var url = "192.168.179.107:3000";
       var socket = io.connect(url);
       var myname ="";
@@ -182,24 +182,38 @@
       });
 
 
-      socket.on("fetchmsg",function(forme,fromuser,msg,tstamp){
+      socket.on("fetchmsg",function(forme,fromuser,touser,msg,tstamp){
+        if(mygroupname[touser]!=undefined && forme==myname && touser==friendname){
+          // alert("groupppp");
+          if(fromuser!=myname){
+            var para = document.createElement("P");
+            para.className='msg';
+            var newText = document.createTextNode(fromuser+": "+msg);
+            para.appendChild(newText);
+            document.getElementById("recv").appendChild(para);
+
+            //  update scrolltop
+            var elem_recv = document.getElementById("recv");
+            elem_recv.scrollTop = elem_recv.scrollHeight;
+          }
+          return;
+
+        }
         if(forme==myname && fromuser==friendname){
           //  if res = 0 
           //  don't show a msg
           var res = 0;
           var elem = document.getElementsByClassName('msg');
-          console.log("len: "+elem[elem.length-1].id);
-          // bug (1)
-          if(elem == undefined){
-            alert("undefined");
+          //  res = 1
+          //  show a msg
+          if(elem.length==0){
             res = 1;
+            console.log("not found element")
           }
           else{
             if(tstamp != elem[elem.length-1].id){
-              // alert("msg is not same.");
-              //  res = 1
-              //  show a msg
               res = 1;
+              console.log("found element");
             }
           }
 
@@ -217,7 +231,22 @@
         }
       });
 
-      socket.on("req_join_group",function(x){
+      socket.on("req_join_group",function(forme,fromuser,msg){
+        // console.log(forme+":"+fromuser+":"+msg);
+        if(forme!=myname){
+          //  not found me
+          return;
+        }
+
+        if(mygroupname[msg]!=undefined)
+          console.log("join group: "+msg);
+        else
+          console.log("not found");
+
+        socket.emit("rep_join_group",forme,msg);
+      });
+
+      socket.on("req_add_group_name",function(x){
         if(x.indexOf(myname)==-1){
           //  not found me
           return;
@@ -231,7 +260,7 @@
         para2.setAttribute("id",x[1]);
         var bt = document.createElement("input");
         bt.type="button";
-        bt.value = x[1]
+        bt.value = x[1];
 
         bt.onclick = setGroupName(x[1]);
         para2.appendChild(bt);
@@ -247,8 +276,8 @@
           friendname=friendName;
           var elem = document.getElementById("frdname");
           elem.innerHTML="Now you are in group '"+friendname+"'.";
-          //  list chat history group *****
-          // socket.emit("update_private_group",friendname);
+          //  list chat history group
+          socket.emit("update_chat_group",friendname);
           alert(friendname);
 
           var cMsg = document.getElementsByClassName("msg");
@@ -261,10 +290,6 @@
           }
         };
       }
-
-      // socket.on("updategroups",function(x){
-
-      // });
 
       socket.on("updateusers",function(data){
         var myNode = document.getElementById("userlist");
@@ -439,14 +464,14 @@
         //  clear textfield
         document.getElementById("chatfield").children[0].value="";
         // -------------------------------------------------
-        // if(mygroupname[friendname]==undefined){
+        if(mygroupname[friendname]==undefined){
           //  send private room
           socket.emit('sendchat', myname, friendname, msg);
-        // }
-        // else{
-        //   //  send to group
-        //   socket.emit('send_to_group',myname,friendname,msg);
-        // }
+        }
+        else{
+          //  send to group
+          socket.emit('send_to_group',myname,friendname,msg);
+        }
       }
 
       function sendName(){

@@ -47,9 +47,9 @@ io.on('connection', function(socket){
             console.log('fetch by..'+x[1]+'\nno msg');
           }
           else{
-            console.log('fetch by..'+x[1]+"\nfrom: "+x[2]+"\nmsg: "+x[3]+"\ntime: "+x[4]);
+            console.log('fetch by..'+x[1]+"\nfrom: "+x[2]+"\nto: "+x[3]+"\nmsg: "+x[4]+"\ntime: "+x[5]);
             console.log(socket.username);
-            io.emit('fetchmsg',x[1],x[2],x[3],x[4]);
+            io.emit('fetchmsg',x[1],x[2],x[3],x[4],x[5]);
           }
           break;
         case "4":
@@ -61,19 +61,41 @@ io.on('connection', function(socket){
           io.emit('get_history',x);
           break;
         case "6":
-          console.log('req join group \''+x[1]+'\'...');
-          io.emit('req_join_group',x);
+          console.log('req add group name \''+x[1]+'\'...');
+          io.emit('req_add_group_name',x);
+          break;
+        case "7":
+          console.log(x[1]);
+          break;
+        case "8":
+          console.log(x[2]+"-->"+x[1]);
+          break;
+        case "9":
+          if(x[2]=="none"){
+            console.log('fetch invite msg by..'+x[1]+'\nnot found invite msg');
+          }
+          else{
+            console.log('fetch invite msg by..'+x[1]+"\nfrom: "+x[2]+"\nmsg: "+x[3]);
+            // console.log(socket.username);
+            io.emit('req_join_group',x[1],x[2],x[3]);
+          }
+          break;
+        case "10":
+          io.emit('get_history',x);
+          break;
       }
     });
 
     requester.connect("tcp://localhost:5555");
     console.log("Sending request...");
 
+    // online list
     setInterval(function(){
       // console.log("setinterval: 4");
       requester.send("4");
     },2000);
 
+    //  read msg
     setInterval(function(){
       // console.log("setinterval: 3");
       console.log(usernames);
@@ -81,6 +103,15 @@ io.on('connection', function(socket){
         requester.send("3:"+key);
       }
     },2000);
+
+    //  read invite msg
+    setInterval(function(){
+      console.log(usernames);
+      for(var key in usernames){
+        requester.send("9:"+key);
+      }
+    },2000);
+
 
   //-----------------------------------------------
 
@@ -97,11 +128,19 @@ io.on('connection', function(socket){
       requester.send("1:"+socket.username);
     });
 
-    // socket.on("updategroups"),function(myname){
-    //   console.log("[updategroups]-----------------------");
-    //   console.log(myname);
-    //   requester.send("7:"+myname);
-    // });
+    socket.on("rep_join_group",function(username,groupname){
+      console.log("[rep_join_group]-----------------------");
+      console.log("name: "+username+"\ngroupname: "+groupname);
+
+      requester.send("7:"+username+":"+groupname);
+    });
+
+    socket.on("update_chat_group",function(groupname){
+      console.log("[update_chat_group]-----------------------");
+      console.log(socket.username);
+
+      requester.send("10:"+socket.username+":"+groupname);
+    });
 
     socket.on("update_private_frd",function(frdname){
       console.log("[update_private_frd]-----------------------");
@@ -120,10 +159,10 @@ io.on('connection', function(socket){
 
     socket.on('send_to_group',function(myname,groupname,msg){
       console.log("[send_to_group]-----------------------");
-      console.log(socket.username);
+      // console.log(socket.username);
       console.log('sender: '+myname+'\ngroup: '+groupname+'\nmsg: '+msg);
       
-      requester.send("7:"+myname+":"+groupname+":"+msg);
+      requester.send("8:"+myname+":"+groupname+":"+msg);
     });
 
     socket.on("new_group",function(groupname,friendsname){
