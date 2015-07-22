@@ -143,13 +143,12 @@
 
     </div> <!--container-->
     <script>
-      // var url = "192.168.2.10:3000"
-      var url = "192.168.179.107:3000";
+      var url = "192.168.2.10:3000"
+      // var url = "192.168.179.107:3000";
       var socket = io.connect(url);
       var myname ="";
       var friendname ="";
       var mygroupname ={};
-      // var temp_selected_name="";
 
       setInterval(function(){
         for(var key in mygroupname){
@@ -178,7 +177,6 @@
             elem2.appendChild(select);
           }
           else{
-            // console.log("!!!");
             var select = document.getElementById(strid);
             var num = parseInt(x[3]);
             console.log("cmp(n/o): "+x[3]+" "+select.options.length.toString());
@@ -187,12 +185,12 @@
                 select.remove(0);
               }
               // alert("remove");
-              // for(var i=4;i<x.length;i++){
-              //   var op = new Option();
-              //   op.value = x[i];
-              //   op.text = x[i];
-              //   select.add(op);
-              // }
+              for(var i=4;i<x.length;i++){
+                var op = new Option();
+                op.value = x[i];
+                op.text = x[i];
+                select.add(op);
+              }
             }
             else{
               // alert("equal");
@@ -235,7 +233,6 @@
 
       socket.on("fetchmsg",function(forme,fromuser,touser,msg,tstamp){
         if(mygroupname[touser]!=undefined && forme==myname && touser==friendname){
-          // alert("groupppp");
           if(fromuser!=myname){
             var para = document.createElement("P");
             para.className='msg';
@@ -435,7 +432,6 @@
 
       function _createGroup(newgroup,friendsname){
         // alert(newgroup+"::"+friendsname);
-        // alert(temp_selected_name);
         socket.emit('new_group',newgroup,myname+":"+friendsname);
       }
 
@@ -514,8 +510,7 @@
       }
 
       function sendMsg(){
-        // alert(temp_selected_name);
-         if(friendname==""){
+        if(friendname==""){
           alert("Please select your friend.");
           return;
         }
@@ -573,7 +568,6 @@
           elem.innerHTML="Now your name is '"+myname+"'.";
           socket.emit("adduser",myname);
 
-          //  fix here
           socket.emit("grouplist",myname);
         }
       }

@@ -69,12 +69,12 @@ void *test_func(void *arg){
     threadParam* my_struct = arg;
     while(1){
         if(my_struct->starter==1){
-//            printf("test func...\n");
             int i;
             for(i=0;i<my_struct->total;i++){
-                if(myUser)
-                printf("name: %s\n",my_struct->myUser[i]);
-                inviteMsg(my_struct->myContext,my_struct->myUser[i]);
+                if(strcmp(tParam->myUser[i],"") != 0){
+                    printf("name: %s\n",my_struct->myUser[i]);
+                    inviteMsg(my_struct->myContext,my_struct->myUser[i]);
+                }
             }
             sleep(5);
         }
@@ -606,6 +606,13 @@ START:
             if (ret != 0) {
                 fprintf(stderr, "Client logoutUser return (%d)\n", ret);
             }
+            //  fix
+            int i;
+            for(i=0;i<tParam->total;i++){
+                if(strcmp(tParam->myUser[i],(char*)userID) == 0){
+                    memset(tParam->myUser[i],0,sizeof(tParam->myUser[0]));
+                }
+            }
         }
         else if (ret == 0) {
             ret = TPTransportClose(context);
@@ -634,6 +641,16 @@ EXIT:
 int main()
 {
     tParam = (threadParam*)malloc(sizeof(threadParam));
+//    printf("size: %lu\n",sizeof(tParam->myUser)/sizeof(tParam->myUser[0]));
+//    int i;
+//    strcpy(tParam->myUser[0],"123");
+//    i = strcmp(tParam->myUser[0],"123");
+//    printf("%d\n",i);
+//    
+//    memset(tParam->myUser[0],0,sizeof(tParam->myUser[0]));
+//    i = strcmp(tParam->myUser[0],"");
+//    printf("%d\n",i);
+    
     pthread_t test_thread;
     pthread_create(&test_thread,NULL,test_func,tParam);
     return callTransport();
