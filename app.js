@@ -5,6 +5,7 @@ var http = require('http').Server(app);
 //	new instance of socket.io
 var io = require('socket.io')(http);
 var usernames={};
+var groupnames={};
 
 //	define a route handler / that gets called when we hit our website home
 app.get('/', function(req, res){
@@ -83,6 +84,22 @@ io.on('connection', function(socket){
         case "10":
           io.emit('get_history',x);
           break;
+        case "11":
+          if(x[2]!="0"){
+            for(var i=3;i<x.length;i++){
+              if(groupnames[x[i]]==undefined)
+                groupnames[x[i]]=x[i];
+            }
+            for(var key in groupnames){
+              console.log("gname: "+groupnames[key]);
+            }
+            io.emit('updategroups',x);
+          }
+          break;
+        case "12":
+          console.log("memberList--"+x[1]+":"+x[2]+":"+x[3]);
+          io.emit('get_mb_group',x);
+          break;
       }
     });
 
@@ -112,7 +129,6 @@ io.on('connection', function(socket){
       }
     },2000);
 
-
   //-----------------------------------------------
 
     socket.on("adduser",function(username){
@@ -126,6 +142,20 @@ io.on('connection', function(socket){
       console.log(usernames);
 
       requester.send("1:"+socket.username);
+    });
+
+    socket.on('fetch_mb_group',function(username,groupname){
+      console.log("[fetch_mb_group]-----------------------");
+      console.log("username: "+username+"\tgroupname: "+groupname);
+
+      requester.send("12:"+username+":"+groupname);
+    });
+
+    socket.on("grouplist",function(username){
+      console.log("[grouplist]-----------------------");
+      console.log(username);
+
+      requester.send("11:"+username);
     });
 
     socket.on("rep_join_group",function(username,groupname){

@@ -296,7 +296,7 @@ int main (void)
                 int i;
                 for (i=0; i<ret; i++) {
 //                    printf("%s: '%s' @%lu\n", arrayMsg[i]->from, arrayMsg[i]->msg, arrayMsg[i]->timestamp);
-                    free(arrayMsg[i]);
+//                    free(arrayMsg[i]);
                     strcat(chatHist,":");
                     strcat(chatHist,arrayMsg[i]->from);
                     strcat(chatHist,":");
@@ -305,6 +305,7 @@ int main (void)
                     char tstamp[20]="";
                     sprintf(tstamp,"%lu",arrayMsg[i]->timestamp);
                     strcat(chatHist,tstamp);
+                    TPMsgFree(arrayMsg[i]);
                 }
             }
             else {
@@ -497,6 +498,93 @@ int main (void)
             }
             printf("send this str: %s\n",chatHist);
             s_send(responder,chatHist);
+            printf("\n\n");
+        }
+        //  list group
+        if(numtype==11){
+            printf("[#%d listGroup]----------------------\n",numtype);
+            
+            token = strtok(NULL,":");
+            char *myUserID = strdup(token);
+            
+            free(str);
+            
+            TPUserID userID;
+            TPGroupID *groupIDs = NULL;
+            
+            memset(&userID, 0, sizeof(userID));
+            strcpy((char*)userID,myUserID);
+            
+            char myMsg[400]="11:";
+            
+            ret = TPListGroup(context, &userID, &groupIDs);
+            if (ret != -1) {
+                printf("num group:%d\n", ret);
+            
+                char myNum[3];
+                strcat(myMsg,myUserID);
+                sprintf(myNum,"%d",ret);
+                strcat(myMsg,":");
+                strcat(myMsg,myNum);
+            
+                int i;
+                for (i=0; i<ret; i++) {
+                    printf("groupID: '%s'\n", groupIDs[i]);
+                    strcat(myMsg,":");
+                    strcat(myMsg,(char*)groupIDs[i]);
+                }
+                free(groupIDs);
+            }
+            else {
+                fprintf(stderr, "Client listGroup return (%d)\n", ret);
+            }
+            printf("send this str: %s\n",myMsg);
+            s_send(responder,myMsg);
+            printf("\n\n");
+        }
+        //  get member group
+        if(numtype==12){
+            printf("[#%d getMemberGroup]----------------------\n",numtype);
+            
+            token = strtok(NULL,":");
+            char *myUserID = strdup(token);
+            
+            token = strtok(NULL,":");
+            char *myGroupID = strdup(token);
+            
+            TPUserID userID;
+            TPGroupID groupID;
+            TPArrayUser *arrayUser = NULL;
+
+            memset(&userID, 0, sizeof(userID));
+            strcpy((char*)userID,myUserID);
+            memset(&groupID, 0, sizeof(groupID));
+            strcpy((char*)groupID,myGroupID);
+
+            char mbList[400]="12:";
+            strcat(mbList,myUserID);
+            strcat(mbList,":");
+            strcat(mbList,myGroupID);
+            
+            
+            ret = TPListMemberInGroup(context, &userID, &groupID, &arrayUser);
+            if (ret == 0) {
+                printf("'%s': member %d\n", (char *)groupID, arrayUser->userLen);
+                
+                strcat(mbList,":");
+                char myNum[3];
+                sprintf(myNum,"%d",arrayUser->userLen);
+                strcat(mbList,myNum);
+                
+                int i;
+                for (i=0; i<arrayUser->userLen; i++) {
+                    printf("'%s': \n", arrayUser->users[i].userID);
+                    strcat(mbList,":");
+                    strcat(mbList,(char*)arrayUser->users[i].userID);
+                }
+            }
+            printf("send this str: %s\n",mbList);
+            s_send(responder,mbList);
             printf("\n\n");
         }
     }

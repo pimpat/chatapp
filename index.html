@@ -143,13 +143,64 @@
 
     </div> <!--container-->
     <script>
-      var url = "192.168.2.10:3000"
-      // var url = "192.168.179.107:3000";
+      // var url = "192.168.2.10:3000"
+      var url = "192.168.179.107:3000";
       var socket = io.connect(url);
       var myname ="";
       var friendname ="";
       var mygroupname ={};
       // var temp_selected_name="";
+
+      setInterval(function(){
+        for(var key in mygroupname){
+          socket.emit('fetch_mb_group',myname,mygroupname[key]);
+        }
+      },5000);
+
+      socket.on('get_mb_group',function(x){
+        if(x[1]!=myname){
+          return;
+        }
+        else{
+          var strid = "mblist-"+x[2];
+          // alert(strid);
+          var elem = document.getElementById(strid);
+          if(elem==undefined){
+            var elem2 = document.getElementById(x[2]);
+            var select = document.createElement('select');
+            select.id = strid;
+            for(var i=4;i<x.length;i++){
+              var op = new Option();
+              op.value = x[i];
+              op.text = x[i];
+              select.options.add(op);
+            }
+            elem2.appendChild(select);
+          }
+          else{
+            // console.log("!!!");
+            var select = document.getElementById(strid);
+            var num = parseInt(x[3]);
+            console.log("cmp(n/o): "+x[3]+" "+select.options.length.toString());
+            if(select.options.length!=num){
+              while(select.options.length > 0){
+                select.remove(0);
+              }
+              // alert("remove");
+              // for(var i=4;i<x.length;i++){
+              //   var op = new Option();
+              //   op.value = x[i];
+              //   op.text = x[i];
+              //   select.add(op);
+              // }
+            }
+            else{
+              // alert("equal");
+            }
+          }
+        }
+      });
+
 
       socket.on("get_history",function(x){
         if(x[1]!=myname){
@@ -256,19 +307,28 @@
         // alert(mygroupname);
         console.log("mygroupname: "+mygroupname[x[1]]);
 
-        var para2 = document.createElement("LI");
-        para2.setAttribute("id",x[1]);
-        var bt = document.createElement("input");
-        bt.type="button";
-        bt.value = x[1];
+        var elem = document.getElementById(x[1]);
 
-        bt.onclick = setGroupName(x[1]);
-        para2.appendChild(bt);
-        document.getElementById("grouplist").appendChild(para2);    
+        if(elem==undefined){
+          var para2 = document.createElement("LI");
+          para2.setAttribute("id",x[1]);
+          var bt = document.createElement("input");
+          bt.type="button";
+          bt.value = x[1];
 
-        //  update scrolltop
-        var elem_online = document.getElementById("onlinelist");
-        elem_online.scrollTop = elem_online.scrollHeight;    
+          bt.onclick = setGroupName(x[1]);
+          para2.appendChild(bt);
+          document.getElementById("grouplist").appendChild(para2);
+          mygroupname[x[1]]=x[1];
+
+        }
+        else{
+          // alert("you have this group");
+          console.log("you have this group");
+        }
+        // //  update scrolltop
+        // var elem_online = document.getElementById("onlinelist");
+        // elem_online.scrollTop = elem_online.scrollHeight;    
       });
 
       var setGroupName = function(friendName){
@@ -290,6 +350,28 @@
           }
         };
       }
+
+      socket.on("updategroups",function(x){
+        // alert(myname+":"+x[1]);
+        if(x[1]!=myname){
+          return;
+        }
+        for(var i=3;i<x.length;i++){
+          var para2 = document.createElement("LI");
+          para2.setAttribute("id",x[i]);
+          var bt = document.createElement("input");
+          bt.type="button";
+          bt.value = x[i];
+
+          bt.onclick = setGroupName(x[i]);
+          para2.appendChild(bt);
+          document.getElementById("grouplist").appendChild(para2);
+          mygroupname[x[i]]=x[i];
+        }
+        // //  update scrolltop
+        // var elem_online = document.getElementById("onlinelist");
+        // elem_online.scrollTop = elem_online.scrollHeight; 
+      });
 
       socket.on("updateusers",function(data){
         var myNode = document.getElementById("userlist");
@@ -327,9 +409,9 @@
           }
         }
 
-        //  update scrolltop
-        var elem_online = document.getElementById("onlinelist");
-        elem_online.scrollTop = elem_online.scrollHeight;
+        // //  update scrolltop
+        // var elem_online = document.getElementById("onlinelist");
+        // elem_online.scrollTop = elem_online.scrollHeight;
       });
 
       var setFriendName = function(friendName){
@@ -404,13 +486,13 @@
             return;
           }
 
-          var elem = document.getElementById(newgroup);
+          // var elem = document.getElementById(newgroup);
 
-          if(elem != undefined) {
-            alert("This group name is used.\nPlease input new group name.");
-            myWindow.document.getElementById("newgroup")="";
-            return;
-          }
+          // if(elem != undefined) {
+          //   alert("This group name is used.\nPlease input new group name.");
+          //   myWindow.document.getElementById("newgroup")="";
+          //   return;
+          // }
 
           var myChecked = myWindow.document.getElementsByClassName("checkedlist");
           var txt="";
@@ -419,16 +501,10 @@
               if(myChecked[i].checked)
                   txt=txt+myChecked[i].id+":";
           }
-          if(txt==""){
-            alert("Please select your friends.");
-            return;
-          }
-
-          // var res = document.getElementById("mygroup");
-          // res.value=txt;
-          // alert(res.value);
-          // temp_selected_name=txt;
-          // alert(temp_selected_name);
+          // if(txt==""){
+          //   alert("Please select your friends.");
+          //   return;
+          // }
 
           document.getElementById("btGroup").disabled = false;
           myWindow.opener._createGroup(newgroup,txt);
@@ -497,7 +573,8 @@
           elem.innerHTML="Now your name is '"+myname+"'.";
           socket.emit("adduser",myname);
 
-          // socket.emit("updategroups",myname);
+          //  fix here
+          socket.emit("grouplist",myname);
         }
       }
 
