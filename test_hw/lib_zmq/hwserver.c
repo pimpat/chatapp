@@ -8,11 +8,45 @@
 #include <time.h>
 #include "zhelpers.h"
 #include "transport.h"
+#include <jansson.h>
 
 int getIdFromConfig(TPTransportCTX *context, char *configFile, char *id);
 
+json_t *load_json(const char *text) {
+    json_t *root;
+    json_error_t error;
+    
+    root = json_loads(text, 0, &error);
+    
+    if (root) {
+        return root;
+    } else {
+        fprintf(stderr, "json error on line %d: %s\n", error.line, error.text);
+        return (json_t *)0;
+    }
+}
+
 int main (void)
 {
+    //  test jansson
+//    char* myJson = "{ \"sender\" : \"pim\", \"action\" : \"join group\", \"groupID\" : \"group1\" }";
+//    char* myKey[] = {"sender","action","groupID"};
+//    
+//    json_t *root = load_json(myJson);
+//    json_t *result;
+//    char* myresult;
+//    
+//    char str[120];
+//    sprintf(str,"{ \"sender\" : \"%s\", \"action\" : \"join group\", \"groupID\" : \"%s\" }","poom","group2");
+//    json_t *root2 = load_json(str);
+//    
+//    int i;
+//    for(i=0;i<3;i++){
+//        result = json_object_get(root2,myKey[i]);
+//        myresult = (char*)json_string_value(result);
+//        printf("value: %s\n",myresult);
+//    }
+    
     //  Socket to talk to clients
     void *context2 = zmq_ctx_new ();
     void *responder = zmq_socket (context2, ZMQ_REP);
@@ -163,11 +197,15 @@ int main (void)
                 strcat(myInviteMsg,":");
                 strcat(myInviteMsg,message->from);
                 strcat(myInviteMsg,":");
-                strcat(myInviteMsg,message->msg);
-//                strcat(myMsg,":");
-//                char tstamp[20]="";
-//                sprintf(tstamp,"%lu",message->timestamp);
-//                strcat(myMsg,tstamp);
+//                strcat(myInviteMsg,message->msg);
+                
+                printf("json-msg(recv): %s\n",message->msg);
+                json_t *root = load_json(message->msg);
+                json_t *result = json_object_get(root,"groupID");
+                char* myresult = (char*)json_string_value(result);
+//                printf("value: %s\n",myresult);
+                strcat(myInviteMsg,myresult);
+                
                 TPMsgFree(message);
                 printf("send this str: %s\n",myInviteMsg);
                 s_send(responder,myInviteMsg);
@@ -358,7 +396,9 @@ int main (void)
             strcpy((char*)sender,mySender);
             
             char msg[256];
-            sprintf(msg,"%s",myGroupRef);
+//            sprintf(msg,"%s",myGroupRef);
+            sprintf(msg,"{ \"sender\" : \"%s\", \"action\" : \"join group\", \"groupID\" : \"%s\" }",mySender,myGroupRef);
+            printf("json-msg(send): %s\n",msg);
             
             while (token2!=NULL) {
                 char* myTarget = strdup(token2);
@@ -551,6 +591,8 @@ int main (void)
             
             token = strtok(NULL,":");
             char *myGroupID = strdup(token);
+            
+            free(str);
             
             TPUserID userID;
             TPGroupID groupID;
