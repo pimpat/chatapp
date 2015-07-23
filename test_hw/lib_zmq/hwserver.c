@@ -104,6 +104,8 @@ int main (void)
             s_send(responder,rep_str);
 //            s_send(responder,"1:login success");
             printf("\n\n");
+            
+            free(usrname);
         }
         //  logout
         if(numtype==0){
@@ -128,6 +130,8 @@ int main (void)
             s_send(responder,rep_str);
 //            s_send(responder,"0:disconnect success");
             printf("\n\n");
+            
+            free(usrname);
         }
         //  send msg
         if(numtype==2){
@@ -168,6 +172,9 @@ int main (void)
             s_send(responder,rep_str);
 //            s_send(responder,"2:received msg");
             printf("\n\n");
+            
+            free(mySender);
+            free(myTarget);
         }
         //  read invite msg
         if(numtype==9){
@@ -217,6 +224,8 @@ int main (void)
                 s_send(responder,myInviteMsg);
             }
             printf("\n\n");
+            
+            free(myUserID);
         }
         //  read msg
         if(numtype==3){
@@ -268,6 +277,8 @@ int main (void)
 //                s_send(responder,"3:none");
             }
             printf("\n\n");
+            
+            free(myUserID);
         }
         //  list online users
         if(numtype==4){
@@ -352,6 +363,9 @@ int main (void)
             printf("send this str: %s\n",chatHist);
             s_send(responder,chatHist);
             printf("\n\n");
+            
+            free(myRefID);
+            free(mySenderID);
         }
         //  new group
         if(numtype==6){
@@ -417,10 +431,15 @@ int main (void)
                     fprintf(stderr, "Client sendToUser return (%d)\n", ret);
                 }
                 token2 = strtok(NULL,":");
+                free(myTarget);
             }
             printf("send this str: %s\n",friendsGroupList);
             s_send(responder,friendsGroupList);
             printf("\n\n");
+            
+            free(myGroupRef);
+            free(myFriendsName);
+            free(mySender);
         }
         //  join group
         if(numtype==7){
@@ -454,6 +473,9 @@ int main (void)
 //            s_send(responder,"7:join group (done)");
             s_send(responder,myMsg);
             printf("\n\n");
+            
+            free(myUserID);
+            free(myGroupRef);
         }
         //  send msg to group
         if(numtype==8){
@@ -493,6 +515,9 @@ int main (void)
             strcat(rep_str,mySender);
             s_send(responder,rep_str);
             printf("\n\n");
+            
+            free(mySender);
+            free(myGroupRef);
         }
         //  list chat group history
         if(numtype==10){
@@ -539,6 +564,9 @@ int main (void)
             printf("send this str: %s\n",chatHist);
             s_send(responder,chatHist);
             printf("\n\n");
+            
+            free(myName);
+            free(myRefID);
         }
         //  list group
         if(numtype==11){
@@ -581,6 +609,8 @@ int main (void)
             printf("send this str: %s\n",myMsg);
             s_send(responder,myMsg);
             printf("\n\n");
+            
+            free(myUserID);
         }
         //  get member group
         if(numtype==12){
@@ -628,6 +658,9 @@ int main (void)
             printf("send this str: %s\n",mbList);
             s_send(responder,mbList);
             printf("\n\n");
+            
+            free(myUserID);
+            free(myGroupID);
         }
     }
     return 0;

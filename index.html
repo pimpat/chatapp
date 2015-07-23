@@ -233,6 +233,7 @@
 
       socket.on("fetchmsg",function(forme,fromuser,touser,msg,tstamp){
         if(mygroupname[touser]!=undefined && forme==myname && touser==friendname){
+          // alert(myname+"-"+touser+"-"+friendname);
           if(fromuser!=myname){
             var para = document.createElement("P");
             para.className='msg';
@@ -247,7 +248,7 @@
           return;
 
         }
-        if(forme==myname && fromuser==friendname){
+        if(forme==myname && fromuser==friendname && toUser==myname){
           //  if res = 0 
           //  don't show a msg
           var res = 0;
