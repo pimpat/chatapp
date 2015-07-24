@@ -143,8 +143,7 @@
 
     </div> <!--container-->
     <script>
-      // var url = "192.168.2.10:3000"
-      var url = "192.168.179.107:3000";
+      var url = "localhost:3000";
       var socket = io.connect(url);
       var myname ="";
       var friendname ="";
@@ -310,12 +309,20 @@
         if(elem==undefined){
           var para2 = document.createElement("LI");
           para2.setAttribute("id",x[1]);
+
           var bt = document.createElement("input");
           bt.type="button";
           bt.value = x[1];
-
           bt.onclick = setGroupName(x[1]);
           para2.appendChild(bt);
+
+          var bt_leave = document.createElement("input");
+          bt_leave.type = "button";
+          bt_leave.style.cssText ="color:red";
+          bt_leave.value = "Leave Group";
+          bt_leave.onclick = leaveThisGroup(x[1]);
+          para2.appendChild(bt_leave);
+
           document.getElementById("grouplist").appendChild(para2);
           mygroupname[x[1]]=x[1];
 
@@ -349,6 +356,26 @@
         };
       }
 
+      var leaveThisGroup = function(grName){
+        return function() {
+          var ret = confirm("Do you want to leave '"+grName+"' group?")
+          if(ret==true){
+            socket.emit('leavegroup',myname,grName);
+
+            var del_elem = document.getElementById(grName);
+            del_elem.parentNode.removeChild(del_elem);
+
+            var strid = "mblist-"+grName;
+            var del_elem2 = document.getElementById(strid);
+            del_elem2.parentNode.removeChild(del_elem2);
+
+            delete mygroupname[grName];
+
+            // socket.emit('leavegroup',myname,grName);
+          }
+        };
+      }
+
       socket.on("updategroups",function(x){
         // alert(myname+":"+x[1]);
         if(x[1]!=myname){
@@ -357,12 +384,20 @@
         for(var i=3;i<x.length;i++){
           var para2 = document.createElement("LI");
           para2.setAttribute("id",x[i]);
+
           var bt = document.createElement("input");
           bt.type="button";
           bt.value = x[i];
-
           bt.onclick = setGroupName(x[i]);
           para2.appendChild(bt);
+
+          var bt_leave = document.createElement("input");
+          bt_leave.type = "button";
+          bt_leave.style.cssText ="color:red";
+          bt_leave.value = "Leave Group";
+          bt_leave.onclick = leaveThisGroup(x[i]);
+          para2.appendChild(bt_leave);
+
           document.getElementById("grouplist").appendChild(para2);
           mygroupname[x[i]]=x[i];
         }
