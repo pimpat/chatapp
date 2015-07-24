@@ -143,8 +143,8 @@
 
     </div> <!--container-->
     <script>
-      var url = "192.168.2.10:3000"
-      // var url = "192.168.179.107:3000";
+      // var url = "192.168.2.10:3000"
+      var url = "192.168.179.107:3000";
       var socket = io.connect(url);
       var myname ="";
       var friendname ="";
@@ -248,7 +248,7 @@
           return;
 
         }
-        if(forme==myname && fromuser==friendname && toUser==myname){
+        if(forme==myname && fromuser==friendname && touser==myname){
           //  if res = 0 
           //  don't show a msg
           var res = 0;
