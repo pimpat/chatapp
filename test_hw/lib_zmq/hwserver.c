@@ -10,6 +10,8 @@
 #include "transport.h"
 #include <jansson.h>
 
+#define TRANSPORT_PATH "/Users/Earth/code/transportlayer"
+
 int getIdFromConfig(TPTransportCTX *context, char *configFile, char *id);
 
 json_t *load_json(const char *text) {
@@ -59,15 +61,17 @@ int main (void)
     char deviceID[64];
     int ret;
     
-    //  set config
-    sprintf(configFile,"%s","/Users/pimpat/Desktop/Transport2/TransportLayer/install/config/config1.conf");
+    sprintf(configFile,"%s/TransportLayer/install/config/config1.conf", TRANSPORT_PATH);
     ret = TPTransportInitFromConfigFile(&context, configFile);
     if (ret == 0) {
         getIdFromConfig(context, configFile, deviceID);
         
+        char command[256];
+        sprintf(command, "mkdir -p %s/TransportLayer/install/chat_history", TRANSPORT_PATH);
+        system(command);
+        
         char path[256];
-        system("mkdir -p /Users/pimpat/Desktop/Transport2/TransportLayer/install/chat_history");
-        sprintf(path, "/Users/pimpat/Desktop/Transport2/TransportLayer/install/chat_history/%s.db", deviceID);
+        sprintf(path, "%s/TransportLayer/install/chat_history/%s.db", TRANSPORT_PATH, deviceID);
     }
     else {
         fprintf(stderr, "Client startClient return (%d)\n", ret);

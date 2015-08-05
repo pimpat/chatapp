@@ -7,9 +7,11 @@ var io = require('socket.io')(http);
 var usernames={};
 var groupnames={};
 
+var INDEX_PATH = "/Users/Earth/code/chatapp/"
+
 //	define a route handler / that gets called when we hit our website home
 app.get('/', function(req, res){
-  res.sendFile('/Users/pimpat/Downloads/multi_room/index.html');
+  res.sendFile(INDEX_PATH + 'index.html');
 });
 
 //	listen on the connection event for incoming sockets
