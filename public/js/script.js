@@ -295,7 +295,7 @@ var leaveThisGroup = function(grName){
         cMe[0].parentNode.removeChild(cMe[0]);
       }
 
-      // socket.emit('leavegroup',myname,grName);
+      socket.emit('leavegroup',myname,grName);
     }
   };
 }
@@ -412,11 +412,9 @@ socket.on("updateusers",function(data){
 
 });
 
-// socket.on("closeSession",function(data){
-//   alert(data);
-//   destroyId = data;
-//   destroySession(destroyId);
-// });
+socket.on("search_result", function(data) {
+  alert(data);
+});
 
 var setFriendName = function(friendName){
   return function() {
@@ -563,4 +561,6 @@ function sendName(){
 function search(){
   var key = $("#searchBox").val();
   console.log(key);
+  socket.emit("search_keyword", key);
+
 }

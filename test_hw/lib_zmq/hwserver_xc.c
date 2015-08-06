@@ -715,6 +715,24 @@ int main (void)
             free(myUserID);
             free(myGroupRef);
         }
+        else if(numtype==14){
+            printf("[#%d search]----------------------\n", numtype);
+            
+            token = strtok(NULL,":");
+            char *keyword  = strdup(token);
+            
+            printf(">>>>>>>>>>>>>> keyword %s\n", keyword);
+            
+            free(str);
+            
+            // go search
+
+            char myMsg[400];
+            sprintf(myMsg,"14:search keyword '%s'", keyword);
+            printf("send this str: %s\n", myMsg);
+            s_send(responder, myMsg);
+            printf("\n\n");
+        }
     }
     return 0;
 }
