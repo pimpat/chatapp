@@ -6,6 +6,7 @@ var path = require('path');
 
 //	new instance of socket.io
 var io = require('socket.io')(http);
+var SessionId = "";
 
 // var users = {};
 // var rooms = ['Default','Room1','Room2'];
@@ -158,8 +159,12 @@ io.on('connection', function(socket){
       socket.username = username;
       usernames[username] = username;
 
-      console.log(socket.id);
+      SessionId = socket.id;
+
+      console.log("socketID: "+SessionId);
       console.log(usernames);
+
+      socket.emit('getSessionId', socket.id);
 
       requester.send("1:"+socket.username);
     });
@@ -235,6 +240,8 @@ io.on('connection', function(socket){
         console.log("[disconnect]-----------------------");
         console.log(socket.username);
         console.log('\''+socket.username+'\' disconnected.');
+
+        //socket.emit('closeSession', SessionId);
 
         var tempname = socket.username;
         delete usernames[tempname];

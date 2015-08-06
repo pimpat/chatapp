@@ -4,6 +4,11 @@ var myname ="";
 var friendname ="";
 var mygroupname ={};
 
+var sessionId = "";
+var userId = "";
+var userState = "";
+var destroyId = "";
+
 setInterval(function(){
   for(var key in mygroupname){
     socket.emit('fetch_mb_group',myname,mygroupname[key]);
@@ -233,6 +238,7 @@ socket.on("req_add_group_name",function(x){
   // elem_online.scrollTop = elem_online.scrollHeight;    
 });
 
+
 var setGroupName = function(friendName){
   return function() {
     friendname=friendName;
@@ -260,6 +266,9 @@ var setGroupName = function(friendName){
     bt_leave.onclick = leaveThisGroup(friendname);
     
     contain_bt.appendChild(bt_leave);
+
+    // Change state
+    keepSession(sessionId, userId, "g"+friendName);
   };
 }
 
@@ -403,6 +412,12 @@ socket.on("updateusers",function(data){
 
 });
 
+// socket.on("closeSession",function(data){
+//   alert(data);
+//   destroyId = data;
+//   destroySession(destroyId);
+// });
+
 var setFriendName = function(friendName){
   return function() {
     friendname=friendName;
@@ -419,6 +434,9 @@ var setFriendName = function(friendName){
     while(cMe[0]){
       cMe[0].parentNode.removeChild(cMe[0]);
     }
+
+    // Change state
+    keepSession(sessionId, userId, "u"+friendName);
   };
 }
 
@@ -523,6 +541,20 @@ function sendName(){
     var elem = document.getElementById("yourname");
     elem.innerHTML="Login as <span class='online'>"+myname+"</span>";
     socket.emit("adduser",myname);
+
+    socket.on("getSessionId",function(data){
+      // Keep state 
+      sessionId = data;
+      userId = newname;
+      userState = "";
+      if (sessionId != "") {
+        keepSession(sessionId, userId, userState);
+      }
+      else{
+        console.log("can't get sessionID");
+      }
+    });
+
   }
 }
 

@@ -88,4 +88,13 @@ function Keyload(){
     return false;  
   }
 });  
+  $('#searchBox').keypress(function (e) {
+   var key = e.which;
+   search();
+   return false;  
+ });  
 }
+
+window.onbeforeunload = function (e) {
+    destroySession(sessionId);
+  };
