@@ -569,7 +569,6 @@ socket.on("search_result", function(data) {
     var show = "";
     for(var i = 1; i < msg.length; i++) {
       show += msg[i] + "\n";
-      alert(msg[i]);
     }
     alert(show);
   }
