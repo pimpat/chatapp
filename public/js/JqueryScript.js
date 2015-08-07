@@ -90,8 +90,10 @@ function Keyload(){
 });  
   $('#searchBox').keypress(function (e) {
    var key = e.which;
-   search();
-   return false;  
+   if(key == 13){
+     search();
+     return false;  
+   }
  });  
 }
 

@@ -412,10 +412,6 @@ socket.on("updateusers",function(data){
 
 });
 
-socket.on("search_result", function(data) {
-  alert(data);
-});
-
 var setFriendName = function(friendName){
   return function() {
     friendname=friendName;
@@ -559,8 +555,22 @@ function sendName(){
 // ------------------------ DataModel ------------------------ //
 
 function search(){
+  var user = document.getElementById("loginName").value;
   var key = $("#searchBox").val();
-  console.log(key);
-  socket.emit("search_keyword", key);
-
+  console.log(user+"\t"+key);
+  socket.emit("search_keyword", user, key);
 }
+
+socket.on("search_result", function(data) {
+  if(data == "Not found") {
+    alert("Not found");
+  } else {
+    var msg = data.split("@@@");
+    var show = "";
+    for(var i = 1; i < msg.length; i++) {
+      show += msg[i] + "\n";
+      alert(msg[i]);
+    }
+    alert(show);
+  }
+});

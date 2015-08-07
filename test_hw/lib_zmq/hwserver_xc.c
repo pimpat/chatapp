@@ -715,22 +715,48 @@ int main (void)
             free(myUserID);
             free(myGroupRef);
         }
+        // search
         else if(numtype==14){
             printf("[#%d search]----------------------\n", numtype);
             
             token = strtok(NULL,":");
+            char *userID  = strdup(token);
+
+            token = strtok(NULL,":");
             char *keyword  = strdup(token);
             
-            printf(">>>>>>>>>>>>>> keyword %s\n", keyword);
+            printf(">>>>>>>>>>>>>> user: %s, keyword: %s\n", userID, keyword);
             
             free(str);
             
-            // go search
-
-            char myMsg[400];
-            sprintf(myMsg,"14:search keyword '%s'", keyword);
-            printf("send this str: %s\n", myMsg);
-            s_send(responder, myMsg);
+            int ret;
+            TPUserID myUserID;
+            int start = 0;
+            int limit = 100;
+            TPTransportMsg *arrayMsg;
+            memset(myUserID, 0, sizeof(myUserID));
+            memcpy(myUserID, userID, (int) (strlen(userID) + 1));
+            ret = TPSearchAllChat(context, &myUserID, keyword, (int)(strlen(keyword)+1), start, limit, TP_SORT_BY_TIME_DESC, &arrayMsg);
+            
+            printf(">>>>>>>>>>>>>>>>>>>>>>>>>\n");
+            if(ret != -1) {
+                char myMsg[512 * ret];
+                strcpy(myMsg, "14:");
+                int i;
+                for(i = 0; i < ret; i++) {
+                    char tmp[512];
+                    sprintf(tmp, "@@@'%s'->'%s'- '%s' @%lu", arrayMsg[i].from, arrayMsg[i].to, arrayMsg[i].msg, arrayMsg[i].timestamp);
+                    free(arrayMsg[i].msg);
+                    strcat(myMsg, tmp);
+                }
+                free(arrayMsg);
+                printf("%s\n", myMsg);
+                s_send(responder, myMsg);
+            } else {
+                s_send(responder, "14:Not found");
+                printf("14:Not found\n");
+            }
+            printf("<<<<<<<<<<<<<<<<<<<<<<<<<\n");
             printf("\n\n");
         }
     }

@@ -121,7 +121,7 @@ switch (x[0]){
     console.log(x[1]);
     case "14":
     console.log(x[1]);
-    io.emit("search_result", x[1]);
+    io.emit("search_result", x[1]); 
     break;
 }
 });
@@ -255,12 +255,13 @@ socket.on("disconnect",function(){
 // }
 });
 
-socket.on("search_keyword", function(keyword) {
+socket.on("search_keyword", function(userID, keyword) {
     if(keyword != "") {
         console.log("[search]-----------------------");
+        console.log('user: '+userID);
         console.log('keyword: '+keyword);
 
-        requester.send("14:"+keyword);
+        requester.send("14:"+userID+":"+keyword);
     }
 });
 
