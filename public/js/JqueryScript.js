@@ -71,30 +71,34 @@ function openAccordion() {
   });
 }
 
+var loaded = false;
 function Keyload(){
-  console.log("Enter key enable");
-  // Input with enter key
-  $('#loginName').keypress(function (e) {
-   var key = e.which;
-   if(key == 13){
-    sendName();
-    return false;  
+  if(!loaded) {
+    loaded = true;
+    console.log("Enter key enable");
+    // Input with enter key
+    $('#loginName').keypress(function (e) {
+     var key = e.which;
+     if(key == 13){
+      sendName();
+      return false;  
+    }
+  });  
+    $('#msgInput').keypress(function (e) {
+     var key = e.which;
+     if(key == 13){
+      sendMsg();
+      return false;  
+    }
+  });  
+    $('#searchBox').keypress(function (e) {
+     var key = e.which;
+     if(key == 13){
+       search();
+       return false;  
+     }
+   });  
   }
-});  
-  $('#msgInput').keypress(function (e) {
-   var key = e.which;
-   if(key == 13){
-    sendMsg();
-    return false;  
-  }
-});  
-  $('#searchBox').keypress(function (e) {
-   var key = e.which;
-   if(key == 13){
-     search();
-     return false;  
-   }
- });  
 }
 
 window.onbeforeunload = function (e) {

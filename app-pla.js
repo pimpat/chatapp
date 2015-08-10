@@ -102,15 +102,11 @@ switch (x[0]){
     io.emit('get_history',x);
     break;
     case "11":
-    if(x[2]!="0"){
-        for(var i=3;i<x.length;i++){
-            if(groupnames[x[i]]==undefined)
-                groupnames[x[i]]=x[i];
+    if(x[2]!="0") { // x[1] = username, x[2] = number of group, x[3+] = groupname
+        for(var i = 3; i < x.length; i++) {
+            console.log("gname: "+x[i]);
         }
-        for(var key in groupnames){
-            console.log("gname: "+groupnames[key]);
-        }
-        io.emit('updategroups',x);
+        io.emit('updategroups', x);
     }
     break;
     case "12":

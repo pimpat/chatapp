@@ -534,8 +534,8 @@ function sendName(){
 
     var elem = document.getElementById("yourname");
     elem.innerHTML="Login as <span class='online'>"+myname+"</span>";
-    socket.emit("adduser",myname);
-
+    socket.emit("adduser", myname);
+    socket.emit("grouplist", myname);
     socket.on("getSessionId",function(data){
       // Keep state 
       sessionId = data;

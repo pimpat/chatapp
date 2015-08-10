@@ -167,7 +167,8 @@ int main (void)
             strcpy((char*)target,myTarget);
             
             message.msg = msg;
-            message.bytesCount = (int)strlen(msg);
+            printf("%d\n", strlen(message.msg));
+            message.bytesCount = (int)strlen(msg) + 1;
             printf("msg: %s\nbytes: %d\n",message.msg,message.bytesCount);
             message.msgType = TP_MSG_TYPE_CHAT;
             
@@ -176,8 +177,7 @@ int main (void)
                 fprintf(stderr, "Client sendToUser return (%d)\n", ret);
             }
             
-            char rep_str[100]="2:send msg success";
-            strcat(rep_str,":");
+            char rep_str[100]="2:send msg success:";
             strcat(rep_str,mySender);
             s_send(responder,rep_str);
             printf("\n\n");
@@ -407,7 +407,7 @@ int main (void)
             strcat(friendsGroupList,myGroupRef);
             strcat(friendsGroupList,":");
             strcat(friendsGroupList,myFriendsName);
-            friendsGroupList[strlen(friendsGroupList)-1]='\0';
+            friendsGroupList[strlen(friendsGroupList)]='\0';
             
             char* token2 = strtok(myFriendsName,":");
             
@@ -514,7 +514,7 @@ int main (void)
             strcpy((char*)groupRef,myGroupRef);
             
             message.msg = msg;
-            message.bytesCount = (int)strlen(msg);
+            message.bytesCount = (int)strlen(msg) + 1;
             
             printf("msg: %s\nbytes: %d\n",message.msg,message.bytesCount);
             message.msgType = TP_MSG_TYPE_CHAT;
