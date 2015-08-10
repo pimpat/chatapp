@@ -312,6 +312,7 @@ socket.on("updategroups",function(x){
     div1.id = x[i]+"-section";
     
     var a1 = document.createElement("a");
+    a1.className = ("accordion-section-title");
     a1.href = "#"+x[i];
     a1.onclick = setGroupName(x[i]);
     a1.innerHTML = "<span class='glyphicon glyphicon-home icon-custom group-icon' aria-hidden='true'></span>"+x[i];
